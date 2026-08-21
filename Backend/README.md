@@ -256,3 +256,114 @@ curl -X POST http://localhost:5000/users/login \
 - A JWT token is generated on successful authentication.
 - The token is valid for 24 hours by default.
 - Email and password mismatch returns a generic error message for security.
+
+---
+
+# User Profile API
+
+## Endpoint
+
+`GET /users/profile`
+
+> The application mounts the user routes under `/users`, so the full profile endpoint is `/users/profile`.
+
+## Description
+
+This endpoint returns the profile of the currently authenticated user.
+
+The request must include a valid JWT token either in the `token` cookie or in the `Authorization` header using the `Bearer <token>` format.
+
+## Success Response
+
+### Status: `200 OK`
+
+```json
+{
+  "_id": "64f1d8b9d0a1b3c2d4e5f678",
+  "fullName": {
+    "firstName": "John",
+    "lastName": "Doe"
+  },
+  "email": "john.doe@example.com",
+  "socketId": null,
+  "__v": 0
+}
+```
+
+## Error Responses
+
+### Status: `401 Unauthorized`
+
+Returned when the token is missing, invalid, expired, or blacklisted.
+
+```json
+{
+  "message": "Unauthorized access"
+}
+```
+
+## Example cURL
+
+```bash
+curl http://localhost:5000/users/profile \
+  -H "Authorization: Bearer jwt_token_here"
+```
+
+---
+
+# User Logout API
+
+## Endpoint
+
+`POST /users/logout`
+
+> The application mounts the user routes under `/users`, so the full logout endpoint is `/users/logout`.
+
+## Description
+
+This endpoint logs out the currently authenticated user.
+
+It clears the `token` cookie and adds the token to the blacklist so it cannot be used for future authenticated requests.
+
+The request must include a valid JWT token either in the `token` cookie or in the `Authorization` header using the `Bearer <token>` format.
+
+## Request Body
+
+No request body is required.
+
+## Success Response
+
+### Status: `200 OK`
+
+```json
+{
+  "message": "Logout User"
+}
+```
+
+## Error Responses
+
+### Status: `401 Unauthorized`
+
+Returned when the token is missing, invalid, expired, or blacklisted.
+
+```json
+{
+  "message": "Unauthorized access"
+}
+```
+
+## Example cURL
+
+```bash
+curl -X POST http://localhost:5000/users/logout \
+  -H "Authorization: Bearer jwt_token_here" \
+  -c cookies.txt \
+  -b cookies.txt
+```
+
+## Notes
+
+- Logout requires authentication because the token is read before it is blacklisted.
+- The client should remove its stored token after a successful logout.
+- A blacklisted token cannot be used to access protected endpoints.
