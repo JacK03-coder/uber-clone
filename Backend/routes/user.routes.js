@@ -23,7 +23,7 @@ router.post(
       .withMessage("Password must be at least 6 characters long"),
   ],
   userController.registerUser,
-);
+)
 
 //Login user route 
 router.post("/login" , 
