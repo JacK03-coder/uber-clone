@@ -256,3 +256,296 @@ curl -X POST http://localhost:5000/users/login \
 - A JWT token is generated on successful authentication.
 - The token is valid for 24 hours by default.
 - Email and password mismatch returns a generic error message for security.
+
+---
+
+# Captain Registration API
+
+## Endpoint
+
+`POST /captains/register`
+
+> The application mounts the captain routes under `/captains`, so the full registration endpoint is `/captains/register`.
+
+## Description
+
+This endpoint registers a new captain with account and vehicle details.
+
+The password is hashed before the captain is stored in MongoDB. A JWT token and the created captain object are returned after successful registration.
+
+## Request Body
+
+```json
+{
+  "fullName": {
+    "firstName": "John",
+    "lastName": "Doe"
+  },
+  "email": "john.doe@example.com",
+  "password": "123456",
+  "vehicle": {
+    "color": "black",
+    "plate": "ABC123",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
+}
+```
+
+## Validation Rules
+
+- `email` is required
+- `fullName.firstName` must be at least 3 characters
+- `fullName.lastName` must be at least 3 characters
+- `password` must be at least 6 characters
+- `vehicle.color` must be at least 3 characters
+- `vehicle.plate` must be at least 3 characters
+- `vehicle.capacity` must be an integer of at least 1
+- `vehicle.vehicleType` must be `car`, `motorcycle`, or `auto`
+
+## Success Response
+
+### Status: `201 Created`
+
+```json
+{
+  "token": "jwt_token_here",
+  "captain": {
+    "_id": "64f1d8b9d0a1b3c2d4e5f678",
+    "fullName": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "black",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "status": "active"
+  }
+}
+```
+
+## Error Responses
+
+### Status: `400 Bad Request`
+
+Returned when validation fails or the captain email already exists.
+
+```json
+{
+  "error": [
+    {
+      "msg": "password must be 6 character long",
+      "path": "password",
+      "location": "body"
+    }
+  ]
+}
+```
+
+### Status: `500 Internal Server Error`
+
+Returned if an unexpected server error occurs.
+
+## Example cURL
+
+```bash
+curl -X POST http://localhost:3000/captains/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "password": "123456",
+    "vehicle": {
+      "color": "black",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }'
+```
+
+---
+
+# Captain Login API
+
+## Endpoint
+
+`POST /captains/login`
+
+## Description
+
+Authenticates a captain using email and password. On success, the JWT is returned in the response and stored in the `token` cookie.
+
+## Request Body
+
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "123456"
+}
+```
+
+## Validation Rules
+
+- `email` must be a valid email address
+- `password` must be at least 6 characters
+
+## Success Response
+
+### Status: `200 OK`
+
+```json
+{
+  "token": "jwt_token_here",
+  "captain": {
+    "_id": "64f1d8b9d0a1b3c2d4e5f678",
+    "fullName": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "black",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
+}
+```
+
+## Error Responses
+
+### Status: `400 Bad Request`
+
+Returned when the email or password validation fails.
+
+### Status: `401 Unauthorized`
+
+Returned when the email does not exist or the password is incorrect.
+
+```json
+"invalid email or password"
+```
+
+## Example cURL
+
+```bash
+curl -X POST http://localhost:3000/captains/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "123456"
+  }'
+```
+
+---
+
+# Captain Profile API
+
+## Endpoint
+
+`GET /captains/profile`
+
+## Description
+
+Returns the profile of the authenticated captain.
+
+Send the JWT in the `token` cookie or as a Bearer token in the `Authorization` header.
+
+## Success Response
+
+### Status: `200 OK`
+
+```json
+{
+  "_id": "64f1d8b9d0a1b3c2d4e5f678",
+  "fullName": {
+    "firstName": "John",
+    "lastName": "Doe"
+  },
+  "email": "john.doe@example.com",
+  "vehicle": {
+    "color": "black",
+    "plate": "ABC123",
+    "capacity": 4,
+    "vehicleType": "car"
+  },
+  "status": "active"
+}
+```
+
+## Error Response
+
+### Status: `401 Unauthorized`
+
+Returned when the token is missing, invalid, expired, or blacklisted.
+
+```json
+{
+  "message": "Unauthorized access"
+}
+```
+
+## Example cURL
+
+```bash
+curl http://localhost:3000/captains/profile \
+  -H "Authorization: Bearer jwt_token_here"
+```
+
+---
+
+# Captain Logout API
+
+## Endpoint
+
+`POST /captains/logout`
+
+## Description
+
+Logs out the authenticated captain by clearing the `token` cookie and adding the current JWT to the blacklist.
+
+No request body is required. Send the token in the `token` cookie or as a Bearer token in the `Authorization` header.
+
+## Success Response
+
+### Status: `200 OK`
+
+```json
+{
+  "message": "Captain logout"
+}
+```
+
+## Error Response
+
+### Status: `401 Unauthorized`
+
+Returned when the token is missing, invalid, expired, or already blacklisted.
+
+```json
+{
+  "message": "Unauthorized access"
+}
+```
+
+## Example cURL
+
+```bash
+curl -X POST http://localhost:3000/captains/logout \
+  -H "Authorization: Bearer jwt_token_here"
+```
+
+## Notes
+
+- Captain profile and logout require authentication.
+- A successfully logged-out token cannot be reused.
+- The JWT expires after 1 hour.
