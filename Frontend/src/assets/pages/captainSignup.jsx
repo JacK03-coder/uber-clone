@@ -85,8 +85,8 @@ const CaptainSignup = () => {
             />
           </div>
 
-          <fieldset className="space-y-5 rounded-xl border border-[#dcebea] bg-[#f2fbfa] p-4 pt-3">
-            <legend className="px-2 text-lg font-semibold text-[#176c69]">
+          <fieldset className="space-y-5 rounded-xl border border-gray-200 bg-gray-50 p-4 pt-3">
+            <legend className="px-2 text-lg font-semibold text-gray-900">
               Vehicle details
             </legend>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
